@@ -1,4 +1,4 @@
-from  Outils import *
+from  outils import *
 
 # régression linéaire : y = a * t + b
 # La fonction que nous voulons dériver est par rapport à a et b

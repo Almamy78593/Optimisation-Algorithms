@@ -1,4 +1,4 @@
-from  Outils import *
+from  outils import *
 
 ALPHA = 0.01
 ALPHA_MIN = 10**-6
