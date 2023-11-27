@@ -1,11 +1,9 @@
 from  Outils import *
-from typing import Callable, Tuple, List
 
 ALPHA = 0.01
 ALPHA_MIN = 10**-6
 ALPHA_MAX = 1.0
-EPSILON = 10 ** -5
-ITERATION_MAX = 1000
+
 
 def gradient(fonctionfx: Callable, dfonctionfx: Callable, x0: float =0, precision_requise:float = EPSILON, iteration_max: int = ITERATION_MAX,
              alpha: float = ALPHA) -> Tuple[float, float, int]:
