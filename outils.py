@@ -18,6 +18,7 @@ RANGE_P = 15
 RANGE_X = 15
 
 N_PARTICULE = 6
+N_POPULATION = 10
 SOLUTION_TSP=9
 DISTANCES_VILLES =[[0,1,1,3,4,5,6,1,7],
                    [1,0,5,4,3,6,1,9,2],
@@ -201,6 +202,50 @@ def add(X, V):
     return new_x
 
 
+def findMissingValues(individu):
+    """
+    Trouve trouve les villes non visité par un individu
+
+    Args:
+        individu: La liste des ville parcouru.
+
+    Returns:
+        La liste dess villes non visité
+    """
+
+    element_manquant = [1,2,3,4,5,6,7,8]
+    element_found = []
+    for i in range(1,len(individu)-1,1):
+        if individu[i] not in element_found:
+            element_found.append(individu[i])
+    missing_values = [x for x in element_manquant if x not in element_found]
+    return missing_values
+
+def findDuplicate(individu:list) -> dict:
+    """
+    Trouve les villes visité deux fois
+
+    Args:
+        individu: liste des villes parcouru par individu
+
+    Returns:
+        un dictionnaire ayant pour clé le numéro de la ville visité deux fois et en valeur les moments(indice) où la ville est visité
+    """
+
+    occurrences = {}
+    resultats = {}
+    for i, element in enumerate(individu):
+        if element not in occurrences:
+            occurrences[element] = [i]
+        else:
+            occurrences[element].append(i)
+    occurrences.pop(0)
+    
+    for element, indices in occurrences.items():
+        if len(indices) > 1:
+            resultats[element] = indices
+    return resultats
+
 
 
 def affichageFonctionAndFonctionD (f:Callable, df:Callable, name_f:str, name_df:str, color_f:str="red", color_df:str="blue", start:int=-1, stop:int=6):
@@ -295,17 +340,17 @@ def plotPSOEvolution(f, pso_results, xlima=0, xlimb=10, ylima=-100, ylimb=500):
     plt.show()
 
 
-def plotPsoTsp(tsp_pso_x_villes):
+def plotResolvingTsp(tsp_x_villes):
     fPs = {}
-    for i in tsp_pso_x_villes[2]: 
+    for i in tsp_x_villes[2]: 
         for j in range(len(i)):
             if j not in fPs.keys():
                 fPs[j] = []
             fPs[j].append(i[j])
 
-    plt.plot(range(tsp_pso_x_villes[3]), tsp_pso_x_villes[1], 'o', label="cout meilleur chemin")
+    plt.plot(range(tsp_x_villes[3]), tsp_x_villes[1], 'o', label="cout meilleur chemin")
     for key_fPs in fPs.keys():
-        plt.plot(range(tsp_pso_x_villes[3]), fPs[key_fPs], '+', label="cout chemin"+str(key_fPs))
+        plt.plot(range(tsp_x_villes[3]), fPs[key_fPs], '+', label="cout chemin"+str(key_fPs))
 
 
     plt.xlabel("Itération")

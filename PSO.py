@@ -173,7 +173,7 @@ def updatePosition(X, V):
     """
     return add(X=X, V=V)
 
-def cost(x, dist_v):
+def costPso(x, dist_v):
     """
     Calcule le coût du parcours de toute les villes d'une particule.
     particule: Une particule.
