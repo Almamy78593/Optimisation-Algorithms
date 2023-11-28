@@ -2,18 +2,32 @@ from matplotlib import pyplot as plt
 import numpy as np
 from numpy import exp
 from typing import Callable, Tuple, List
+import random
+import math
 
+###############################CONSTANTE########################
 EPSILON = 10 ** -5
 ITERATION_MAX = 1000
+ITERATION_MAX_TSP = 200
 N=10
-    
-# Points d'observations (ti, vi)
+
 DATA1 = [(2, 2), (4, 4.3), (5, 4.9)]
 DATA2 = [(1, 0.5), (2, 1), (3, 1.5),(4, 2), (5, 2.5), (6, 3)]
 
+RANGE_P = 15
+RANGE_X = 15
 
-
-
+N_PARTICULE = 6
+SOLUTION_TSP=9
+DISTANCES_VILLES =[[0,1,1,3,4,5,6,1,7],
+                   [1,0,5,4,3,6,1,9,2],
+                   [2,5,0,1,6,1,9,3,7],
+                   [3,4,1,0,5,9,7,2,1],
+                   [4,3,6,5,0,9,1,2,1],
+                   [5,6,1,9,9,0,2,1,7],
+                   [6,1,9,7,1,2,0,4,5],
+                   [1,9,3,2,2,1,4,0,7],
+                   [7,2,7,1,1,7,5,7,0]]
 
 def f1(x: float) -> float:
     """
@@ -42,6 +56,18 @@ def dg1(x: float) -> float:
     """
     return 2 * (x - 2) * (x**2 - 3 * x + 1) * exp(-(x-1)**2)
 
+
+def f2(x: float) -> float:
+    """
+    Retourne la valeur de f(x) pour un x donné
+    """
+    return ((x - 1) ** 2)*(x-8)**2
+
+def f3(x: float) -> float:
+    """
+    Retourne la valeur de f(x) pour un x donné
+    """
+    return 4/39*(x-10)**2+4
     
 
 def generatePoints(N):
@@ -62,6 +88,118 @@ def generatePoints(N):
     v += e
 
     return t, v
+
+
+def permutation(individu, idx_cities):
+    """
+    Introduit une permutation de l'ordre de visite de deux villes parmis les villes que visite un individu
+
+    vect_individu: L'ordre de visite des ville d'un individu.
+    dist_v: matrice de distance représentant le coût de déplacement entre chaque ville
+
+    Returns: Un nouvel ordre de visite des ville par un individu, et un boolean pour savoir si le nouveau parcours est tabou
+    """
+    new_individu = individu.copy()
+    city_1 = new_individu[idx_cities[0]]
+    city_2 = new_individu[idx_cities[1]]
+
+    new_individu[idx_cities[0]] = city_2
+    new_individu[idx_cities[1]] = city_1
+
+    return new_individu
+
+
+def subtract(X1, X2):
+    """
+    Calcule la vitesse faisant passer de la position x à la position y.
+
+    Args:
+    X1: La première position.
+    X2: La deuxième position.
+
+    Returns:
+    La vitesse pour passer de X1 à X2.
+    """
+    vitesse = []
+    for idx2 in range(len(X2)):
+        i = 0
+        for idx1 in range(len(X1)):
+            if X1[idx1] == X2[idx2] and idx1!=idx2:
+                vitesse.append([X1[idx2], X1[idx1]])
+                X1 = permutation(X1, [idx1, idx2])
+
+    return vitesse
+
+def multiply(k, V):
+    """
+    Multiplie une vitesse par un réel.
+    k: Le réel.
+    V: La vitesse.
+    Returns : La vitesse résultante.
+    """
+
+    result = []
+
+    # Cas 0 < k < 1
+    if 0 < k < 1:
+        k = math.floor(k * len(V))
+        for i in range(k):
+            result.append(V[i])
+        
+    # Cas k est un entier
+    elif isinstance(k, int):
+        result = V * k
+
+    # Cas k > 1
+    elif k > 1:
+        part_int, part_real = math.modf(k)
+        result = add(multiply(part_int, V) , multiply(part_real, V))
+
+    # Cas k < 0
+    else:
+        k = -k
+        result = multiply(k, V)
+
+    return result
+
+
+def add(X, V):
+    """
+    Additionne deux positions ou une position et une vitesse.
+    X: La première position ou la position.
+    V: La deuxième vitesse ou la vitesse.
+    Returns: La position ou la vitesse résultante.
+    """
+    # Vérification de la validité des entrées    
+    result = []
+    if isinstance(X, list):
+        # Addition de deux vitesses
+        for x in X:
+          if isinstance(x, list):
+              for i in X:
+                  result.append(i)
+              for i in V:
+                  result.append(i)
+              return result
+    
+    # Permutation
+    new_x = X.copy()
+    for v in V:
+        va=v[0]
+        vb=v[1]
+        idx_new_va = 0
+        idx_new_vb = 0
+        for i in range(len(X)):
+            if new_x[i] == va:
+                idx_new_va = i
+            if new_x[i] == vb:   
+                idx_new_vb = i
+        if idx_new_va != idx_new_vb:
+            new_x[idx_new_va] = vb
+            new_x[idx_new_vb] = va
+
+    return new_x
+
 
 
 
@@ -119,3 +257,59 @@ def affichagePointObserves(t,v):
     plt.title("Représentation des points observés")
     plt.show()
     
+
+
+def plotPSOEvolution(f, pso_results, xlima=0, xlimb=10, ylima=-100, ylimb=500):
+    """
+    Trace la fonction f et l'évolution des solutions Pg et Pi (i = 1, ..., k) sur un graphe.
+
+    Args:
+        f: La fonction à tracer.
+        pso_results: Les résultats de l'algorithme PSO.
+    """
+
+    # Tracer la fonction f
+
+    xs = np.linspace(xlima, xlimb, 100)
+    ys = f(xs)
+    plt.plot(xs, ys, label="f(x)")
+
+
+    # Tracer l'évolution de P1
+    plt.plot(pso_results[2], pso_results[3], 'o', label="P1")
+
+    # Tracer l'évolution de P2
+    plt.plot(pso_results[4], pso_results[5], '*', label="P2")
+
+    # Tracer l'évolution de P3
+    plt.plot(pso_results[6], pso_results[7], 'x', label="P3")
+
+    # Tracer l'évolution de Pg
+    plt.plot(pso_results[0], pso_results[1], '+', label="Pg")
+
+    plt.xlabel("Itération")
+    plt.ylabel("Valeur de la fonction objectif")
+    plt.xlim(xlima,xlimb)
+    plt.ylim(ylima, ylimb)
+    plt.legend()
+    plt.show()
+
+
+def plotPsoTsp(tsp_pso_x_villes):
+    fPs = {}
+    for i in tsp_pso_x_villes[2]: 
+        for j in range(len(i)):
+            if j not in fPs.keys():
+                fPs[j] = []
+            fPs[j].append(i[j])
+
+    plt.plot(range(tsp_pso_x_villes[3]), tsp_pso_x_villes[1], 'o', label="cout meilleur chemin")
+    for key_fPs in fPs.keys():
+        plt.plot(range(tsp_pso_x_villes[3]), fPs[key_fPs], '+', label="cout chemin"+str(key_fPs))
+
+
+    plt.xlabel("Itération")
+    plt.ylabel("Évolution du coût du parcours de toute les villes")
+    plt.legend(loc="upper right",  bbox_to_anchor=(1.5, 1))
+    plt.show()
+
