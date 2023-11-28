@@ -20,6 +20,7 @@ RANGE_X = 15
 N_PARTICULE = 6
 N_POPULATION = 10
 SOLUTION_TSP=9
+TEMPS_INTERDICTION=5
 DISTANCES_VILLES =[[0,1,1,3,4,5,6,1,7],
                    [1,0,5,4,3,6,1,9,2],
                    [2,5,0,1,6,1,9,3,7],
@@ -358,3 +359,11 @@ def plotResolvingTsp(tsp_x_villes):
     plt.legend(loc="upper right",  bbox_to_anchor=(1.5, 1))
     plt.show()
 
+def plotResolvingTspTabou(tsp_x_villes):
+    plt.plot(range(tsp_x_villes[3]), tsp_x_villes[1], 'o', label="cout meilleur chemin")
+    plt.plot(range(tsp_x_villes[3]), tsp_x_villes[2], '+', label="cout chemin concurrent")
+
+    plt.xlabel("Itération")
+    plt.ylabel("Évolution du coût du parcours de toute les villes")
+    plt.legend(loc="upper right",  bbox_to_anchor=(1.5, 1))
+    plt.show()
